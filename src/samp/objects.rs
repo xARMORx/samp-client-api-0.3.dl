@@ -1,4 +1,4 @@
-use super::{v037r3 as r3, v037 as r1};
+use super::{v037r3 as r3, v037 as r1, v03dl as dl};
 use super::version::{Version, version};
 
 use crate::gta::object::CObject;
@@ -7,6 +7,7 @@ use crate::gta::matrix::CVector;
 pub struct Object<'a> {
     object_v1: Option<&'a r1::CObject>,
     object_v3: Option<&'a r3::CObject>,
+    object_vdl: Option<&'a dl::CObject>,
 }
 
 impl<'a> Object<'a> {
@@ -14,6 +15,7 @@ impl<'a> Object<'a> {
         Object {
             object_v1: Some(object),
             object_v3: None,
+            object_vdl: None,
         }
     }
 
@@ -21,14 +23,24 @@ impl<'a> Object<'a> {
         Object {
             object_v3: Some(object),
             object_v1: None,
+            object_vdl: None,
+        }
+    }
+
+    fn new_vdl(object: &'a dl::CObject) -> Object<'a> {
+        Object {
+            object_vdl: Some(object),
+            object_v3: None,
+            object_v1: None,
         }
     }
 
     pub fn entity(&self) -> Option<&'a mut CObject> {
         let v1 = self.object_v1.map(|obj| obj._base.m_pGameEntity as *mut CObject);
         let v3 = self.object_v3.map(|obj| obj._base.m_pGameEntity as *mut CObject);
+        let vdl = self.object_vdl.map(|obj| obj._base.m_pGameEntity as *mut CObject);
 
-        v1.or(v3)
+        v1.or(v3).or(vdl)
             .filter(|ptr| !ptr.is_null())
             .map(|ptr| unsafe { &mut *ptr })
     }
@@ -57,6 +69,7 @@ impl<'a> Object<'a> {
         match version() {
             Version::V037 => r1::find_object(object_id).map(|obj| Object::new_v1(obj)),
             Version::V037R3 => r3::find_object(object_id).map(|obj| Object::new_v3(obj)),
+            Version::V03DL => dl::find_object(object_id).map(|obj| Object::new_vdl(obj)),
             _ => None,
         }
     }

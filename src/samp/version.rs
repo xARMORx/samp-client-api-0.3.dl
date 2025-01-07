@@ -12,6 +12,7 @@ pub enum Version {
     V037,
     V037R2, // also unsupported
     V037R3,
+    V03DL,
     Unknown,
 }
 
@@ -53,10 +54,11 @@ pub fn version() -> Version {
             let major = fileinfo.file_version_ms & 0xFF;
             let minor = fileinfo.file_version_ls >> 16 & 0xFF;
             let rc = fileinfo.file_version_ls & 0xFF;
-
+            
             let version = match (major, minor, rc) {
                 (3, 7, 0) => Version::V037,
                 (3, 7, 2) => Version::V037R3,
+                (3, 8, 0) => Version::V03DL,
                 _ => Version::Unknown,
             };
 
